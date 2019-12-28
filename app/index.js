@@ -5,7 +5,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import "./style.css";
 
 // ----------------- VARIABLES ----------------- //
-let size = 3;
+// let size = 3;
 // const startGame = size => {
 //   return Array(size)
 //     .fill(null)
@@ -34,18 +34,6 @@ class Board extends Component {
     this.handleClick = this.handleClick.bind(this);
   }
 
-  renderSquare(i, size) {
-    let row = Math.floor(i / size),
-      col = i % size;
-    return (
-      <Square
-        key={i}
-        status={this.props.state.board[row][col]}
-        onClick={() => this.handleClick(i)}
-      />
-    );
-  }
-
   renderBoard(size, count = 0, table = []) {
     for (let row = 0; row < size; row++) {
       let children = [];
@@ -53,7 +41,7 @@ class Board extends Component {
         children.push(this.renderSquare(count++, size));
       }
       table.push(
-        <div className="boardrow" key={row}>
+        <div className={`boardrow row-${row}`} key={row}>
           {children}
         </div>
       );
@@ -61,7 +49,19 @@ class Board extends Component {
     return table;
   }
 
-  handleClick(i) {
+  renderSquare(i, size) {
+    let row = Math.floor(i / size),
+      col = i % size;
+    return (
+      <Square
+        key={i}
+        status={this.props.state.board[row][col]}
+        onClick={() => this.handleClick(i, size)}
+      />
+    );
+  }
+
+  handleClick(i, size) {
     const { state, updateBoard, startGame } = this.props;
     let newBoard = [...state.board],
       row = Math.floor(i / size),
@@ -70,21 +70,22 @@ class Board extends Component {
     if (newBoard[row][col] !== null) return alert("Choose Another Box!");
     newBoard[row][col] = state.oneNext ? state.theme.one : state.theme.two;
     updateBoard({ board: newBoard, oneNext: !state.oneNext });
-    if (calcWinner(row, col, newBoard[row][col], state.board)) {
+    if (calcWinner(row, col, newBoard[row][col], state.board, size)) {
       alert(`${newBoard[row][col]} WON !`);
-      updateBoard({ board: startGame(size), oneNext: true });
+      updateBoard({ board: startGame(), oneNext: true });
     }
   }
 
   render() {
-    const { state } = this.props;
+    const { state, size } = this.props;
+    console.log("board render -", state);
     const status =
       "Next Player: " + (state.oneNext ? state.theme.one : state.theme.two);
 
     return (
       <div className="boardFullDiv">
         <h3 className="status">{status}</h3>
-        {this.renderBoard(size)}
+        <div className="board">{this.renderBoard(size)}</div>
       </div>
     );
   }
@@ -94,36 +95,41 @@ class Board extends Component {
 class Game extends Component {
   constructor() {
     super();
+    this.playerOne = { one: "X", two: "O" };
     this.state = {
-      board: this.startGame(size),
+      board: this.startGame(),
       oneNext: true,
-      theme: this.selectTheme()
+      theme: this.playerOne
     };
     this.startGame = this.startGame.bind(this);
-    this.selectTheme = this.selectTheme.bind(this);
+    this.handleThemeChange = this.handleThemeChange.bind(this);
     this.updateBoard = this.updateBoard.bind(this);
     this.clearGame = this.clearGame.bind(this);
     this.sizeValue = this.sizeValue.bind(this);
   }
 
   sizeValue() {
-    const size = document.getElementById("num-columns").value;
-    console.log("size --", size);
-    return size;
+    const input = document.getElementById("num-columns");
+    return !input || !input.value ? 3 : Number(input.value);
   }
 
-  selectTheme(one = "X", two = "O") {
-    return {
-      one: one,
-      two: two
-    };
+  handleThemeChange(evt) {
+    this.playerOne = { one: evt.target.value, two: "O" };
+    // const newTheme = { one: evt.target.value, two: "O" };
+    // console.log("change 1 -", this.state.theme, newTheme);
+    // this.setState({
+    // theme: newTheme
+    // });
+    // console.log("change 2 -", this.state, evt.target.value);
   }
 
-  startGame(size) {
+  startGame() {
+    const size = this.sizeValue();
     const newBoard = Array(size)
       .fill(null)
       .map(() => Array(size).fill(null));
-    this.setState();
+    this.setState({ board: newBoard, theme: this.playerOne });
+    console.log("start --", this.state);
     return newBoard;
   }
 
@@ -133,7 +139,7 @@ class Game extends Component {
 
   clearGame() {
     this.setState({
-      board: this.startGame(size),
+      board: this.startGame(),
       oneNext: true
     });
   }
@@ -150,24 +156,25 @@ class Game extends Component {
               type="text"
               maxlengh="2"
               placeholder="3"
-              // value={this}
               onFocus={e => (e.target.placeholder = "")}
               onBlur={e => (e.target.placeholder = "3")}
             />
           </div>
-          <button id="startBtn" onClick={this.sizeValue}>
+          <div id="selectDiv">
+            Player One:
+            <select onChange={this.handleThemeChange}>
+              <option>A</option>
+              <option>B</option>
+              <option>C</option>
+              <option>D</option>
+            </select>
+          </div>
+          <button id="startBtn" onClick={this.startGame}>
             Start Game
           </button>
           <button id="clearBtn" onClick={this.clearGame}>
             Clear Game
           </button>
-          <div id="selectDiv">
-            Player One:
-            <select value={this.state.theme.one}>
-              <option>X</option>
-              <option>O</option>
-            </select>
-          </div>
         </div>
 
         <div className="game">
@@ -176,7 +183,7 @@ class Game extends Component {
               state={this.state}
               startGame={this.startGame}
               updateBoard={this.updateBoard}
-              size={this.sizeValue}
+              size={this.sizeValue()}
             />
           </div>
 
@@ -192,7 +199,7 @@ class Game extends Component {
 }
 
 // ----------------- HELPER FUNCTIONS ----------------- //
-function calcWinner(row, col, player, board) {
+function calcWinner(row, col, player, board, size) {
   let count = 1;
   // ROW WIN
   for (let i = 1; i < size; i++) {
