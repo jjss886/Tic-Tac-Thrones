@@ -4,23 +4,11 @@ import { BrowserRouter as Router } from "react-router-dom";
 
 import "./style.css";
 
-// ----------------- VARIABLES ----------------- //
-// let size = 3;
-// const startGame = size => {
-//   return Array(size)
-//     .fill(null)
-//     .map(() => Array(size).fill(null));
-// };
-// const theme = {
-//   one: "X",
-//   two: "O"
-// };
-
 // ----------------- SQUARE ----------------- //
 const Square = props => {
   return (
     <button className="square" onClick={props.onClick}>
-      {props.status}
+      <span className="squareText">{props.status}</span>
     </button>
   );
 };
@@ -170,7 +158,7 @@ class Game extends Component {
             </select>
           </div>
           <button id="startBtn" onClick={this.startGame}>
-            Start Game
+            New Game
           </button>
           <button id="clearBtn" onClick={this.clearGame}>
             Clear Game
