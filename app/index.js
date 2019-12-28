@@ -78,7 +78,6 @@ class Board extends Component {
 
   render() {
     const { state, size } = this.props;
-    console.log("board render -", state);
     const status =
       "Next Player: " + (state.oneNext ? state.theme.one : state.theme.two);
 
@@ -97,7 +96,9 @@ class Game extends Component {
     super();
     this.playerOne = { one: "X", two: "O" };
     this.state = {
-      board: this.startGame(),
+      board: Array(3)
+        .fill(null)
+        .map(() => Array(3).fill(null)),
       oneNext: true,
       theme: this.playerOne
     };
@@ -129,7 +130,6 @@ class Game extends Component {
       .fill(null)
       .map(() => Array(size).fill(null));
     this.setState({ board: newBoard, theme: this.playerOne });
-    console.log("start --", this.state);
     return newBoard;
   }
 
