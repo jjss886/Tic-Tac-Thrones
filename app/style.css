@@ -39,6 +39,7 @@ ol {
 /* -------------- SETTER --------------  */
 .gameSetter {
   background-color: rgba(0, 103, 120, 0.5);
+  border-style: solid;
   height: 300px;
   width: 20%;
   display: flex;
@@ -94,6 +95,7 @@ ol {
 /* -------------- BOARD --------------  */
 .game-board {
   background-color: rgba(0, 152, 195, 0.5);
+  border-style: solid;
   height: 300px;
   width: 40%;
   display: flex;
@@ -135,7 +137,9 @@ ol {
 
 /* -------------- INFO --------------  */
 .game-info {
-  background-color: rgba(184, 0, 92, 0.5);
+  /* background-color: rgba(184, 0, 92, 0.5); */
+  background-color: rgba(201, 221, 3, 0.5);
+  border-style: solid;
   height: 270px;
   width: 30%;
   display: flex;
@@ -148,6 +152,10 @@ ol {
   text-align: center;
 }
 
-.playerHeader {
+.playerOneHeader {
   color: rgba(0, 152, 195);
+}
+
+.playerTwoHeader {
+  color: rgba(184, 0, 92);
 }

@@ -86,8 +86,7 @@ class Board extends Component {
     if (calcWinner(row, col, player, state.board, size)) {
       alert(`House ${player} won !`);
       startGame();
-    }
-    if (tieGame(state.board)) {
+    } else if (tieGame(state.board)) {
       alert(`Tie Game !`);
       startGame();
     }
@@ -100,7 +99,6 @@ class Board extends Component {
 
     return (
       <div className="boardFullDiv">
-        {/* <h3 className="status">{status}</h3> */}
         <div className="board">{this.renderBoard(size)}</div>
       </div>
     );
@@ -125,7 +123,6 @@ class Game extends Component {
     this.handleOneChange = this.handleOneChange.bind(this);
     this.handleTwoChange = this.handleTwoChange.bind(this);
     this.updateBoard = this.updateBoard.bind(this);
-    this.clearGame = this.clearGame.bind(this);
     this.sizeValue = this.sizeValue.bind(this);
     this.moveTracker = this.moveTracker.bind(this);
   }
@@ -166,13 +163,6 @@ class Game extends Component {
       board: newState.board,
       oneNext: newState.oneNext,
       moves: newState.moves == [] ? [] : [...this.state.moves, newState.moves]
-    });
-  }
-
-  clearGame() {
-    this.setState({
-      board: this.startGame(),
-      oneNext: true
     });
   }
 
@@ -237,9 +227,6 @@ class Game extends Component {
             <button id="startBtn" className="btn" onClick={this.startGame}>
               New Game
             </button>
-            <button id="clearBtn" className="btn" onClick={this.clearGame}>
-              Clear Game
-            </button>
           </div>
         </div>
 
@@ -255,9 +242,8 @@ class Game extends Component {
         <div className="game-info">
           <h3 className="trackerHeader">
             Tracker Board:{" "}
-            <span className="playerHeader">
-              {this.players.one} vs. {this.players.two}
-            </span>
+            <span className="playerOneHeader">{this.players.one}</span> vs.{" "}
+            <span className="playerTwoHeader">{this.players.two}</span>
           </h3>
           <h4>
             Waiting on House{" "}
