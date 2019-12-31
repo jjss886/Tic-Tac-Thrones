@@ -53,14 +53,23 @@ class Board extends Component {
     const { state, updateBoard, startGame } = this.props;
     let newBoard = [...state.board],
       row = Math.floor(i / size),
-      col = i % size;
+      col = i % size,
+      player = state.oneNext ? state.theme.one : state.theme.two;
 
     if (newBoard[row][col] !== null) return alert("Choose Another Box!");
-    newBoard[row][col] = state.oneNext ? state.theme.one : state.theme.two;
-    updateBoard({ board: newBoard, oneNext: !state.oneNext });
+    newBoard[row][col] = player;
+    updateBoard({
+      board: newBoard,
+      oneNext: !state.oneNext,
+      moves: `House ${player}: row ${row} col ${col}`
+    });
     if (calcWinner(row, col, newBoard[row][col], state.board, size)) {
       alert(`${newBoard[row][col]} WON !`);
-      updateBoard({ board: startGame(), oneNext: true });
+      updateBoard({ board: startGame(), oneNext: true, moves: [] });
+    }
+    if (tieGame(state.board)) {
+      alert(`TIE GAME !`);
+      updateBoard({ board: startGame(), oneNext: true, moves: [] });
     }
   }
 
@@ -82,34 +91,39 @@ class Board extends Component {
 class Game extends Component {
   constructor() {
     super();
-    this.playerOne = { one: "X", two: "O" };
+    this.players = { one: "X", two: "O" };
     this.state = {
       board: Array(3)
         .fill(null)
         .map(() => Array(3).fill(null)),
       oneNext: true,
-      theme: this.playerOne
+      theme: this.players,
+      status: "",
+      moves: []
     };
     this.startGame = this.startGame.bind(this);
-    this.handleThemeChange = this.handleThemeChange.bind(this);
+    this.handleOneChange = this.handleOneChange.bind(this);
+    this.handleTwoChange = this.handleTwoChange.bind(this);
     this.updateBoard = this.updateBoard.bind(this);
     this.clearGame = this.clearGame.bind(this);
     this.sizeValue = this.sizeValue.bind(this);
   }
 
   sizeValue() {
-    const input = document.getElementById("num-columns");
+    const input = document.getElementById("numCols");
     return !input || !input.value ? 3 : Number(input.value);
   }
 
-  handleThemeChange(evt) {
-    this.playerOne = { one: evt.target.value, two: "O" };
-    // const newTheme = { one: evt.target.value, two: "O" };
-    // console.log("change 1 -", this.state.theme, newTheme);
-    // this.setState({
-    // theme: newTheme
-    // });
-    // console.log("change 2 -", this.state, evt.target.value);
+  handleOneChange(evt) {
+    const symbol = evt.target.value;
+    if (symbol === this.players.two) return alert("Choose another house!");
+    this.players = { one: symbol, two: this.players.two };
+  }
+
+  handleTwoChange(evt) {
+    const symbol = evt.target.value;
+    if (symbol === this.players.one) return alert("Choose another house!");
+    this.players = { one: this.players.one, two: symbol };
   }
 
   startGame() {
@@ -117,12 +131,16 @@ class Game extends Component {
     const newBoard = Array(size)
       .fill(null)
       .map(() => Array(size).fill(null));
-    this.setState({ board: newBoard, theme: this.playerOne });
+    this.setState({ board: newBoard, theme: this.players });
     return newBoard;
   }
 
   updateBoard(newState) {
-    this.setState({ board: newState.board, oneNext: newState.oneNext });
+    this.setState({
+      board: newState.board,
+      oneNext: newState.oneNext,
+      moves: [...this.state.moves, newState.moves]
+    });
   }
 
   clearGame() {
@@ -135,11 +153,12 @@ class Game extends Component {
   render() {
     return (
       <div className="gameFullDiv">
-        <div className="gameHeader">
+        <div className="gameSetter">
+          <span className="setterHeader">Set Up your Game!</span>
           <div id="boardSizeDiv">
             Board Size:{" "}
             <input
-              id="num-columns"
+              id="numCols"
               name="size"
               type="text"
               maxlengh="2"
@@ -148,38 +167,58 @@ class Game extends Component {
               onBlur={e => (e.target.placeholder = "3")}
             />
           </div>
-          <div id="selectDiv">
-            Player One:
-            <select onChange={this.handleThemeChange}>
+          <div id="oneSelectDiv">
+            Player One:{" "}
+            <select onChange={this.handleOneChange} id="oneSelect">
+              <option>X</option>
               <option>A</option>
               <option>B</option>
               <option>C</option>
               <option>D</option>
             </select>
           </div>
-          <button id="startBtn" onClick={this.startGame}>
-            New Game
-          </button>
-          <button id="clearBtn" onClick={this.clearGame}>
-            Clear Game
-          </button>
+          <div id="twoSelectDiv">
+            Player Two:{" "}
+            <select onChange={this.handleTwoChange} id="twoSelect">
+              <option>O</option>
+              <option>A</option>
+              <option>B</option>
+              <option>C</option>
+              <option>D</option>
+            </select>
+          </div>
+          <div className="btnDiv">
+            <button id="startBtn" className="btn" onClick={this.startGame}>
+              New Game
+            </button>
+            <button id="clearBtn" className="btn" onClick={this.clearGame}>
+              Clear Game
+            </button>
+          </div>
         </div>
 
-        <div className="game">
-          <div className="game-board">
-            <Board
-              state={this.state}
-              startGame={this.startGame}
-              updateBoard={this.updateBoard}
-              size={this.sizeValue()}
-            />
-          </div>
+        <div className="game-board">
+          <Board
+            state={this.state}
+            startGame={this.startGame}
+            updateBoard={this.updateBoard}
+            size={this.sizeValue()}
+          />
+        </div>
 
-          <div className="game-info">
-            <h3>Tracker Board: </h3>
-            <h5>Status: </h5>
-            <ol></ol>
-          </div>
+        <div className="game-info">
+          <h3 className="trackerHeader">
+            Tracker Board:{" "}
+            <span className="playerHeader">
+              {this.players.one} vs. {this.players.two}
+            </span>
+          </h3>
+          <h5>Status: {this.state.status}</h5>
+          <ol>
+            {this.state.moves.map((move, idx) => {
+              return <li key={idx}>{move}</li>;
+            })}
+          </ol>
         </div>
       </div>
     );
@@ -217,6 +256,11 @@ function calcWinner(row, col, player, board, size) {
   }
   if (count === size) return true;
   else return false;
+}
+
+function tieGame(board) {
+  let flattenBoard = [].concat.apply([], board);
+  return !flattenBoard.includes(null);
 }
 
 // ----------------- RENDER TO HTML ----------------- //
