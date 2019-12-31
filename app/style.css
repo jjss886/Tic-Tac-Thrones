@@ -11,8 +11,18 @@ h3 {
   margin: 0px;
 }
 
+h4 {
+  margin: 10px 0px 10px;
+  text-align: center;
+}
+
 h5 {
   margin: 0px;
+}
+
+ol {
+  margin: 0px;
+  padding-inline-start: 15px;
 }
 
 /* -------------- GAME --------------  */
@@ -47,12 +57,24 @@ h5 {
   width: 33px;
 }
 
+.fullSelectDiv {
+  width: 90%;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.indSelectDiv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 #oneSelect {
-  width: 45px;
+  width: 80px;
 }
 
 #twoSelect {
-  width: 45px;
+  width: 80px;
 }
 
 .btnDiv {
@@ -82,12 +104,12 @@ h5 {
 }
 
 .boardFullDiv {
-  width: 80%;
+  width: 90%;
   height: 90%;
 }
 
 .board {
-  height: 90%;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -109,11 +131,6 @@ h5 {
 
 .square:hover {
   background-color: rgba(175, 175, 175, 1);
-}
-
-.squareText {
-  display: inline;
-  font-size: 1.8em;
 }
 
 /* -------------- INFO --------------  */

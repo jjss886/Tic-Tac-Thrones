@@ -4,12 +4,32 @@ import { BrowserRouter as Router } from "react-router-dom";
 
 import "./style.css";
 
+// ----------------- VARIABLE ----------------- //
+const logos = {
+  Stark: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Stark.svg_.png`,
+  Lannister: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Lannister.svg_.png`,
+  Arryn: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Arryn.svg-1.png`,
+  Tyrell: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Tyrell.svg_.png`,
+  Greyjoy: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Greyjoy.svg_.png`,
+  Martell: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Martell.svg_.png`,
+  Baratheon: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Baratheon.svg_.png`,
+  Tully: `https://awoiaf.westeros.org/thumb.php?f=House_Tully.svg&width=545&lang=en`,
+  Targaryen: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Targaryen.svg_.png`
+};
+
 // ----------------- SQUARE ----------------- //
 const Square = props => {
   return (
-    <button className="square" onClick={props.onClick}>
-      <span className="squareText">{props.status}</span>
-    </button>
+    <button
+      className={`square ${props.status}`}
+      onClick={props.onClick}
+      style={{
+        backgroundImage: `url(${logos[props.status]})`,
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "contain"
+      }}
+    />
   );
 };
 
@@ -63,13 +83,13 @@ class Board extends Component {
       oneNext: !state.oneNext,
       moves: `House ${player}: row ${row} col ${col}`
     });
-    if (calcWinner(row, col, newBoard[row][col], state.board, size)) {
-      alert(`${newBoard[row][col]} WON !`);
-      updateBoard({ board: startGame(), oneNext: true, moves: [] });
+    if (calcWinner(row, col, player, state.board, size)) {
+      alert(`House ${player} won !`);
+      startGame();
     }
     if (tieGame(state.board)) {
-      alert(`TIE GAME !`);
-      updateBoard({ board: startGame(), oneNext: true, moves: [] });
+      alert(`Tie Game !`);
+      startGame();
     }
   }
 
@@ -80,7 +100,7 @@ class Board extends Component {
 
     return (
       <div className="boardFullDiv">
-        <h3 className="status">{status}</h3>
+        {/* <h3 className="status">{status}</h3> */}
         <div className="board">{this.renderBoard(size)}</div>
       </div>
     );
@@ -91,7 +111,7 @@ class Board extends Component {
 class Game extends Component {
   constructor() {
     super();
-    this.players = { one: "X", two: "O" };
+    this.players = { one: "Stark", two: "Lannister" };
     this.state = {
       board: Array(3)
         .fill(null)
@@ -107,6 +127,7 @@ class Game extends Component {
     this.updateBoard = this.updateBoard.bind(this);
     this.clearGame = this.clearGame.bind(this);
     this.sizeValue = this.sizeValue.bind(this);
+    this.moveTracker = this.moveTracker.bind(this);
   }
 
   sizeValue() {
@@ -116,14 +137,14 @@ class Game extends Component {
 
   handleOneChange(evt) {
     const symbol = evt.target.value;
-    if (symbol === this.players.two) return alert("Choose another house!");
-    this.players = { one: symbol, two: this.players.two };
+    if (symbol === this.players.two) return alert("Can't choose same House!");
+    else this.players = { one: symbol, two: this.players.two };
   }
 
   handleTwoChange(evt) {
     const symbol = evt.target.value;
-    if (symbol === this.players.one) return alert("Choose another house!");
-    this.players = { one: this.players.one, two: symbol };
+    if (symbol === this.players.one) return alert("Can't choose same House!");
+    else this.players = { one: this.players.one, two: symbol };
   }
 
   startGame() {
@@ -131,7 +152,12 @@ class Game extends Component {
     const newBoard = Array(size)
       .fill(null)
       .map(() => Array(size).fill(null));
-    this.setState({ board: newBoard, theme: this.players });
+    this.setState({
+      board: newBoard,
+      oneNext: true,
+      theme: this.players,
+      moves: []
+    });
     return newBoard;
   }
 
@@ -139,7 +165,7 @@ class Game extends Component {
     this.setState({
       board: newState.board,
       oneNext: newState.oneNext,
-      moves: [...this.state.moves, newState.moves]
+      moves: newState.moves == [] ? [] : [...this.state.moves, newState.moves]
     });
   }
 
@@ -148,6 +174,16 @@ class Game extends Component {
       board: this.startGame(),
       oneNext: true
     });
+  }
+
+  moveTracker() {
+    return (
+      <ol>
+        {this.state.moves.map((move, idx) => {
+          return <li key={idx}>{move}</li>;
+        })}
+      </ol>
+    );
   }
 
   render() {
@@ -167,25 +203,35 @@ class Game extends Component {
               onBlur={e => (e.target.placeholder = "3")}
             />
           </div>
-          <div id="oneSelectDiv">
-            Player One:{" "}
-            <select onChange={this.handleOneChange} id="oneSelect">
-              <option>X</option>
-              <option>A</option>
-              <option>B</option>
-              <option>C</option>
-              <option>D</option>
-            </select>
-          </div>
-          <div id="twoSelectDiv">
-            Player Two:{" "}
-            <select onChange={this.handleTwoChange} id="twoSelect">
-              <option>O</option>
-              <option>A</option>
-              <option>B</option>
-              <option>C</option>
-              <option>D</option>
-            </select>
+          <div className="fullSelectDiv">
+            <div className="indSelectDiv" id="oneSelectDiv">
+              <span>Player One: </span>
+              <select onChange={this.handleOneChange} id="oneSelect">
+                <option>Stark</option>
+                <option>Lannister</option>
+                <option>Arryn</option>
+                <option>Tyrell</option>
+                <option>Greyjoy</option>
+                <option>Martell</option>
+                <option>Baratheon</option>
+                <option>Tully</option>
+                <option>Targaryen</option>
+              </select>
+            </div>
+            <div className="indSelectDiv" id="twoSelectDiv">
+              <span>Player Two: </span>
+              <select onChange={this.handleTwoChange} id="twoSelect">
+                <option>Lannister</option>
+                <option>Stark</option>
+                <option>Arryn</option>
+                <option>Tyrell</option>
+                <option>Greyjoy</option>
+                <option>Martell</option>
+                <option>Baratheon</option>
+                <option>Tully</option>
+                <option>Targaryen</option>
+              </select>
+            </div>
           </div>
           <div className="btnDiv">
             <button id="startBtn" className="btn" onClick={this.startGame}>
@@ -213,12 +259,11 @@ class Game extends Component {
               {this.players.one} vs. {this.players.two}
             </span>
           </h3>
-          <h5>Status: {this.state.status}</h5>
-          <ol>
-            {this.state.moves.map((move, idx) => {
-              return <li key={idx}>{move}</li>;
-            })}
-          </ol>
+          <h4>
+            Waiting on House{" "}
+            {this.state.oneNext ? this.players.one : this.players.two}!
+          </h4>
+          {this.moveTracker()}
         </div>
       </div>
     );
