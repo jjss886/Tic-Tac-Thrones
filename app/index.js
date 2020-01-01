@@ -4,19 +4,6 @@ import { BrowserRouter as Router } from "react-router-dom";
 
 import "./style.css";
 
-// ----------------- VARIABLE ----------------- //
-const logos = {
-  Stark: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Stark.svg_.png`,
-  Lannister: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Lannister.svg_.png`,
-  Arryn: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Arryn.svg-1.png`,
-  Tyrell: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Tyrell.svg_.png`,
-  Greyjoy: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Greyjoy.svg_.png`,
-  Martell: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Martell.svg_.png`,
-  Baratheon: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Baratheon.svg_.png`,
-  Tully: `https://awoiaf.westeros.org/thumb.php?f=House_Tully.svg&width=545&lang=en`,
-  Targaryen: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Targaryen.svg_.png`
-};
-
 // ----------------- SQUARE ----------------- //
 const Square = props => {
   return (
@@ -60,6 +47,7 @@ class Board extends Component {
   renderSquare(i, size) {
     let row = Math.floor(i / size),
       col = i % size;
+
     return (
       <Square
         key={i}
@@ -77,25 +65,25 @@ class Board extends Component {
       player = state.oneNext ? state.theme.one : state.theme.two;
 
     if (newBoard[row][col] !== null) return alert("Choose Another Box!");
-    newBoard[row][col] = player;
+    const updatedRow = [...state.board[row]];
+    updatedRow[col] = player;
+    newBoard[row] = updatedRow;
     updateBoard({
       board: newBoard,
       oneNext: !state.oneNext,
       moves: `House ${player}: row ${row} col ${col}`
     });
-    if (calcWinner(row, col, player, state.board, size)) {
+    if (calcWinner(row, col, player, newBoard, size)) {
       alert(`House ${player} won !`);
       startGame();
-    } else if (tieGame(state.board)) {
+    } else if (tieGame(newBoard)) {
       alert(`Tie Game !`);
       startGame();
     }
   }
 
   render() {
-    const { state, size } = this.props;
-    const status =
-      "Next Player: " + (state.oneNext ? state.theme.one : state.theme.two);
+    const { size } = this.props.state;
 
     return (
       <div className="boardFullDiv">
@@ -105,57 +93,138 @@ class Board extends Component {
   }
 }
 
+// ----------------- SETTER ----------------- //
+class GameSetter extends Component {
+  constructor() {
+    super();
+    this.state = {
+      size: 3,
+      theme: { one: "Stark", two: "Lannister" }
+    };
+    this.handleSizeChange = this.handleSizeChange.bind(this);
+    this.handleOneChange = this.handleOneChange.bind(this);
+    this.handleTwoChange = this.handleTwoChange.bind(this);
+  }
+
+  handleSizeChange(evt) {
+    const val = evt.target.value;
+    if (isNaN(val)) return alert("Must input numbers !");
+    this.setState({ size: Number(val) });
+  }
+
+  handleOneChange(evt) {
+    const symbol = evt.target.value,
+      curTwo = this.state.theme.two;
+    this.setState({ theme: { one: symbol, two: curTwo } });
+  }
+
+  handleTwoChange(evt) {
+    const symbol = evt.target.value,
+      curOne = this.state.theme.one;
+    this.setState({ theme: { one: curOne, two: symbol } });
+  }
+
+  render() {
+    const { updateSetter } = this.props;
+
+    return (
+      <div className="innerGameSetter">
+        <span className="setterHeader">Set Up your Game!</span>
+
+        <div id="boardSizeDiv">
+          Board Size:{" "}
+          <input
+            id="numCols"
+            name="size"
+            type="text"
+            maxlengh="2"
+            placeholder="3"
+            onChange={this.handleSizeChange}
+            onFocus={e => (e.target.placeholder = "")}
+            onBlur={e => (e.target.placeholder = "3")}
+          />
+        </div>
+
+        <div className="fullSelectDiv">
+          <div className="indSelectDiv" id="oneSelectDiv">
+            <span>House One:</span>
+            <select
+              value={this.state.theme.one}
+              onChange={this.handleOneChange}
+              id="oneSelect"
+            >
+              {Object.keys(logos)
+                .filter(x => x !== this.state.theme.two)
+                .map((logo, idx) => {
+                  return <option key={idx}>{logo}</option>;
+                })}
+            </select>
+          </div>
+          <div className="indSelectDiv" id="twoSelectDiv">
+            <span>House Two:</span>
+            <select
+              value={this.state.theme.two}
+              onChange={this.handleTwoChange}
+              id="twoSelect"
+            >
+              {Object.keys(logos)
+                .filter(x => x !== this.state.theme.one)
+                .map((logo, idx) => {
+                  return <option key={idx}>{logo}</option>;
+                })}
+            </select>
+          </div>
+        </div>
+
+        <div className="btnDiv">
+          <button
+            id="startBtn"
+            className="btn"
+            onClick={() =>
+              updateSetter({ size: this.state.size, theme: this.state.theme })
+            }
+          >
+            New Game
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
 // ----------------- GAME ----------------- //
 class Game extends Component {
   constructor() {
     super();
-    this.players = { one: "Stark", two: "Lannister" };
     this.state = {
+      size: 3,
       board: Array(3)
         .fill(null)
         .map(() => Array(3).fill(null)),
       oneNext: true,
-      theme: this.players,
+      theme: { one: "Stark", two: "Lannister" },
       status: "",
       moves: []
     };
+    this.createBoard = this.createBoard.bind(this);
     this.startGame = this.startGame.bind(this);
-    this.handleOneChange = this.handleOneChange.bind(this);
-    this.handleTwoChange = this.handleTwoChange.bind(this);
     this.updateBoard = this.updateBoard.bind(this);
-    this.sizeValue = this.sizeValue.bind(this);
-    this.moveTracker = this.moveTracker.bind(this);
+    this.updateSetter = this.updateSetter.bind(this);
   }
 
-  sizeValue() {
-    const input = document.getElementById("numCols");
-    return !input || !input.value ? 3 : Number(input.value);
-  }
-
-  handleOneChange(evt) {
-    const symbol = evt.target.value;
-    if (symbol === this.players.two) return alert("Can't choose same House!");
-    else this.players = { one: symbol, two: this.players.two };
-  }
-
-  handleTwoChange(evt) {
-    const symbol = evt.target.value;
-    if (symbol === this.players.one) return alert("Can't choose same House!");
-    else this.players = { one: this.players.one, two: symbol };
+  createBoard(size) {
+    return Array(size)
+      .fill(null)
+      .map(() => Array(size).fill(null));
   }
 
   startGame() {
-    const size = this.sizeValue();
-    const newBoard = Array(size)
-      .fill(null)
-      .map(() => Array(size).fill(null));
+    const newBoard = this.createBoard(this.state.size);
     this.setState({
       board: newBoard,
       oneNext: true,
-      theme: this.players,
       moves: []
     });
-    return newBoard;
   }
 
   updateBoard(newState) {
@@ -166,68 +235,21 @@ class Game extends Component {
     });
   }
 
-  moveTracker() {
-    return (
-      <ol>
-        {this.state.moves.map((move, idx) => {
-          return <li key={idx}>{move}</li>;
-        })}
-      </ol>
-    );
+  updateSetter(newState) {
+    const newBoard = this.createBoard(newState.size);
+    this.setState({
+      board: newBoard,
+      size: newState.size,
+      theme: newState.theme,
+      moves: []
+    });
   }
 
   render() {
     return (
       <div className="gameFullDiv">
         <div className="gameSetter">
-          <span className="setterHeader">Set Up your Game!</span>
-          <div id="boardSizeDiv">
-            Board Size:{" "}
-            <input
-              id="numCols"
-              name="size"
-              type="text"
-              maxlengh="2"
-              placeholder="3"
-              onFocus={e => (e.target.placeholder = "")}
-              onBlur={e => (e.target.placeholder = "3")}
-            />
-          </div>
-          <div className="fullSelectDiv">
-            <div className="indSelectDiv" id="oneSelectDiv">
-              <span>Player One: </span>
-              <select onChange={this.handleOneChange} id="oneSelect">
-                <option>Stark</option>
-                <option>Lannister</option>
-                <option>Arryn</option>
-                <option>Tyrell</option>
-                <option>Greyjoy</option>
-                <option>Martell</option>
-                <option>Baratheon</option>
-                <option>Tully</option>
-                <option>Targaryen</option>
-              </select>
-            </div>
-            <div className="indSelectDiv" id="twoSelectDiv">
-              <span>Player Two: </span>
-              <select onChange={this.handleTwoChange} id="twoSelect">
-                <option>Lannister</option>
-                <option>Stark</option>
-                <option>Arryn</option>
-                <option>Tyrell</option>
-                <option>Greyjoy</option>
-                <option>Martell</option>
-                <option>Baratheon</option>
-                <option>Tully</option>
-                <option>Targaryen</option>
-              </select>
-            </div>
-          </div>
-          <div className="btnDiv">
-            <button id="startBtn" className="btn" onClick={this.startGame}>
-              New Game
-            </button>
-          </div>
+          <GameSetter updateSetter={this.updateSetter} />
         </div>
 
         <div className="game-board">
@@ -235,21 +257,24 @@ class Game extends Component {
             state={this.state}
             startGame={this.startGame}
             updateBoard={this.updateBoard}
-            size={this.sizeValue()}
           />
         </div>
 
         <div className="game-info">
           <h3 className="trackerHeader">
             Tracker Board:{" "}
-            <span className="playerOneHeader">{this.players.one}</span> vs.{" "}
-            <span className="playerTwoHeader">{this.players.two}</span>
+            <span className="playerOneHeader">{this.state.theme.one}</span> vs.{" "}
+            <span className="playerTwoHeader">{this.state.theme.two}</span>
           </h3>
           <h4>
             Waiting on House{" "}
-            {this.state.oneNext ? this.players.one : this.players.two}!
+            {this.state.oneNext ? this.state.theme.one : this.state.theme.two}!
           </h4>
-          {this.moveTracker()}
+          <ol>
+            {this.state.moves.map((move, idx) => {
+              return <li key={idx}>{move}</li>;
+            })}
+          </ol>
         </div>
       </div>
     );
@@ -293,6 +318,19 @@ function tieGame(board) {
   let flattenBoard = [].concat.apply([], board);
   return !flattenBoard.includes(null);
 }
+
+// ----------------- VARIABLE ----------------- //
+const logos = {
+  Stark: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Stark.svg_.png`,
+  Lannister: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Lannister.svg_.png`,
+  Arryn: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Arryn.svg-1.png`,
+  Tyrell: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Tyrell.svg_.png`,
+  Greyjoy: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Greyjoy.svg_.png`,
+  Martell: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Martell.svg_.png`,
+  Baratheon: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Baratheon.svg_.png`,
+  Tully: `https://awoiaf.westeros.org/thumb.php?f=House_Tully.svg&width=545&lang=en`,
+  Targaryen: `https://www.freelogoservices.com/blog/wp-content/uploads/House_Targaryen.svg_.png`
+};
 
 // ----------------- RENDER TO HTML ----------------- //
 render(
