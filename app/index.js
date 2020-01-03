@@ -129,7 +129,7 @@ class GameSetter extends Component {
 
     return (
       <div className="innerGameSetter">
-        <span className="setterHeader">Set Up your Game!</span>
+        <span className="setterHeader">Prepare Your Battle!</span>
 
         <div id="boardSizeDiv">
           Board Size:{" "}
