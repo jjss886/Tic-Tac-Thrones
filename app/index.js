@@ -108,8 +108,10 @@ class GameSetter extends Component {
 
   handleSizeChange(evt) {
     const val = evt.target.value;
-    if (isNaN(val)) return alert("Must input numbers !");
-    this.setState({ size: Number(val) });
+    if (isNaN(val)) {
+      evt.target.value = "";
+      alert("Must input numbers !");
+    } else this.setState({ size: Number(val) });
   }
 
   handleOneChange(evt) {
