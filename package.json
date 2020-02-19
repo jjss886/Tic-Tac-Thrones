@@ -8,7 +8,8 @@
     "build-watch": "webpack -w",
     "start-server": "nodemon --watch server.js",
     "start-dev": "npm run build-watch & npm run start-server",
-    "start": "node server"
+    "start": "node server",
+    "deploy": "script/deploy"
   },
   "keywords": [],
   "author": "",
